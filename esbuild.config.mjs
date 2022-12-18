@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
-import builtins from 'builtin-modules'
+import builtins from 'builtin-modules';
+import {sassPlugin} from 'esbuild-sass-plugin'
+import { copy } from 'esbuild-plugin-copy';
 
 const banner =
 `/*
@@ -15,7 +17,7 @@ esbuild.build({
 	banner: {
 		js: banner,
 	},
-	entryPoints: ['main.ts'],
+	entryPoints: ['main.ts', 'styles.scss'],
 	bundle: true,
 	external: [
 		'obsidian',
@@ -38,5 +40,17 @@ esbuild.build({
 	logLevel: "info",
 	sourcemap: prod ? false : 'inline',
 	treeShaking: true,
-	outfile: 'main.js',
+	outdir: './dist',
+	plugins: [
+		sassPlugin({
+			filter:	/.(s[ac]ss|css)$/,
+		}),
+		copy({
+		  resolveFrom: 'cwd',	// Returns name of current working directory
+		  assets: {
+			from: ['./static/**/*'],
+			to: ['./dist'],
+		  },
+		}),
+	  ],
 }).catch(() => process.exit(1));
